@@ -1,23 +1,39 @@
 # bot.py
 import os
 import re
+import subprocess
+import json
 
-import discord
+from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-TRUSTED = re.compile("").split(os.getenv('TRUSTED_LIST'))
+OWNER = os.getenv('ADMIN')
+TRUSTED = list(json.loads(os.getenv('TRUSTED_LIST')))
 
-client = discord.Client()
+service_name = 'MCServerIIA'
 
-@client.event
+bot = commands.Bot(command_prefix='>')
+
+@bot.event
 async def on_ready():
-    print(f'{client.user} has connected to Discord!')
+    print(f'{bot.user} has connected to Discord!')
 
-@client.event
-async def on_message(message):
-    #if message.author == self.user:
-    print(message.author)
+# @bot.command()
+# async def help(ctx):
+#     ctx.send('go PM me with theese commands')
 
-client.run(TOKEN)
+@bot.command()
+async def start(ctx):
+    if (ctx.author == OWNER or ctx.author in TRUSTED):
+        res = subprocess.run(['sc','start',service_name])
+        ctx.send(res)
+
+@bot.command()
+async def stop(ctx):
+    if (ctx.author == OWNER or ctx.author in TRUSTED):
+        res = subprocess.run(['sc','stop',service_name])
+        ctx.send(res)
+
+bot.run(TOKEN)
